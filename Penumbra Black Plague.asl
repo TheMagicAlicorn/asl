@@ -24,13 +24,13 @@ startup{
 	settings.Add("chemlab_to_corridor", true, "Chem Lab to Corridor");
 	settings.Add("corridor_to_exam", true, "Corridor to Examination Room");
 	settings.Add("exam_to_corridor", true, "Examination Room to Corridor");
-	settings.Add("corridor_to_tower1", true, "Corridor to Waiting Room");
-	settings.Add("tower1_to_tower2", true, "Waiting Room to Challenge 1");
+	settings.Add("corridor_to_tower1", false, "Corridor to Waiting Room");
+	settings.Add("tower1_to_tower2", false, "Waiting Room to Challenge 1");
 	settings.Add("tower2_to_tower1", true, "Challenge 1 to Waiting Room");
-	settings.Add("tower1_to_tower3", true, "Waiting Room to Challenge 2");
+	settings.Add("tower1_to_tower3", false, "Waiting Room to Challenge 2");
 	settings.Add("tower3_to_tower1", true, "Challenge 2 to Waiting Room");
-	settings.Add("tower1_to_tower4", true, "Waiting Room to Challenge 3");
-	settings.Add("tower4_to_tower1", true, "Challenge 3 to Waiting Room");
+	settings.Add("tower1_to_tower4", false, "Waiting Room to Challenge 3");
+	settings.Add("tower4_to_tower1", false, "Challenge 3 to Waiting Room");
 	settings.Add("tower1_to_ending", true, "Waiting Room to Ending");
 }
 
