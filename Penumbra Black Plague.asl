@@ -22,7 +22,10 @@ update{
 }
 
 start{
-    return old.gameTime == 0 && current.gameTime > 0;
+    bool starting = old.gameTime == 0 && current.gameTime > 0;
+    if (starting)
+        vars.split = 0;
+    return starting;
 }
 
 isLoading{
@@ -30,9 +33,11 @@ isLoading{
 }
 
 split{
-    if (vars.split == 6 && current.level_name == "level07_residental_corridors.dae")
+    if (current.level_name == "level02_vents.dae")
         return false;
-    if (vars.split == 6 && current.level_name == "level06_dr_swansons_room.dae")
+    if (vars.split == 5 && current.level_name == "level07_residental_corridors.dae")
+        return false;
+    if (vars.split == 5 && current.level_name == "level06_dr_swansons_room.dae")
         return false;
     if (current.level_name == "level21_tower_1.dae" && old.level_name == "level16_infected_corridors.dae")
         return false;
