@@ -6,7 +6,7 @@ state("penumbra"){
 startup{
     vars.prevPhase = null;
     vars.loadedTime = 0;
-	settings.Add("cells_to_vents", true, "Cells to Vents");
+	//settings.Add("cells_to_vents", true, "Cells to Vents");
 	settings.Add("vents_to_messhall_entrance", true, "Vents to Messhall entrance");
 	settings.Add("entrance_to_messhall", true, "Messhall Entrance to Messhall");
 	settings.Add("messhall_to_sewers", true, "Messhall to Sewers");
@@ -66,11 +66,12 @@ split{
 	if (current.level_name == "level04_messhall.dae" && old.level_name == "level03_messhall_entrance.dae" && settings["entrance_to_messhall"])
         return true;
 	if (current.level_name == "level05_sewers.dae" && old.level_name == "level04_messhall.dae" && settings["messhall_to_sewers"])
-       return true;
+        return true;
 	if (current.level_name == "level06_dr_swansons_room.dae" && old.level_name == "level05_sewers.dae" && settings["sewers_to_swanson"])
         return true;
-	if (current.level_name == "level07_residental_corridors.dae" && old.level_name == "level06_dr_swansons_room.dae" && settings["swanson_to_corridor"])
-        return true;
+	if (vars.split == 0 && current.level_name == "level07_residental_corridors.dae" && old.level_name == "level06_dr_swansons_room.dae" && settings["swanson_to_corridor"]){
+        vars.split += 1;
+        return true;}
 	if (current.level_name == "level11_infirmary.dae" && old.level_name == "level07_residental_corridors.dae" && settings["corridor_to_infirmary"])
         return true;
 	if (current.level_name == "level07_residental_corridors.dae" && old.level_name == "level11_infirmary.dae" && settings["infirmary_to_corridor"])
