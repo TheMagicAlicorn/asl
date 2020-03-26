@@ -1,5 +1,5 @@
 /* 
-Autosplitter v0.3 by MagicALCN for Penumbra: Black Plague v1.1 (Steam Version)
+Autosplitter v0.3 by MagicALCN for Penumbra: Black Plague v1.1 (Steam Version) 
 
 Contributors :
 	- Kappawaii
