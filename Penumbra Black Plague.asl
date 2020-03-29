@@ -1,13 +1,18 @@
 //-----------------------------------------------------------------
 //  About: Load Remover & Auto Splitter
 //  Author: MagicALCN, Kappawaii, Astropilot, Tarados, DrTChops, Kotti
-//  Version: 1.0
-//  Last Release Date: 27 March 2020
+//  Version: 1.1
+//  Last Release Date: 29 March 2020
 //-----------------------------------------------------------------
 
 
 state("penumbra") {
-    string50 debug_console: 0x2DCAF0, 0x2C, 0x54, 0xC4, 0x38, 0x4BC; // To retrieve game maps into debug logs
+    // Our two variables needed to retrieve the names of the loaded levels.
+    // Note that the first variable is no longer used by the game when a level whose name is higher than 16 characters is loaded,
+    // it is then definitively replaced until the game is restarted by the second variable.
+    string16 levelName1: 0x2DCAF0, 0x15C, 0x70, 0x170, 0x24, 0xF4;
+    string50 levelName2: 0x2DCAF0, 0x174, 0x24, 0xF4, 0x0;
+
     int wallCounter: 0x2DCAF0, 0x15C, 0x74, 0x70, 0x0, 0x48; // The wallCounter used in the last level to unlock the computer
     int computerEnding: 0x2E46F0; // Seems to be a boolean set to false when interacting with the computer on text screens
 
@@ -20,12 +25,11 @@ state("penumbra") {
 startup {
     vars.prevPhase = null; // The previous LiveSplit timer status
     vars.loadedTime = 0; // Variable to save the ingame time when you die or reload the level
-    vars.prevLevelName = ""; // Variable to save the previous level
     vars.clarenceSkip = false; // The trick to skip the effects of Clarence in the Residential Corridor by going back into Dr. Swanson's office
 
     // Boolean settings to select the desired splits
     settings.Add("Splits");
-	settings.CurrentDefaultParent = "Splits";
+    settings.CurrentDefaultParent = "Splits";
     settings.Add("cells_to_vents", true, "Cells to Vents");
     settings.Add("vents_to_messhall_entrance", true, "Vents to Messhall Entrance");
     settings.Add("entrance_to_messhall", true, "Messhall Entrance to Messhall");
@@ -56,12 +60,21 @@ startup {
 
 
 update {
-    if (current.gameTime == 0 && old.gameTime > 0) // If we come back into the game after a death or a save reload
+    if (current.gameTime == 0 && old.gameTime > 0) { // If we come back into the game after a death or a save reload
         vars.loadedTime += old.gameTime; // We save the previous ingame time
+    }
     if (timer.CurrentPhase == TimerPhase.Running && vars.prevPhase == TimerPhase.NotRunning) // If the LiveSplit timer has just started (e.g. new run)
         vars.loadedTime = 0; // We reset the saved ingame time
 
     vars.prevPhase = timer.CurrentPhase; // Saving the previous state of the LiveSplit timer
+
+    // Here if we detect that the first variable is no longer used by the game, then we use the second one
+    // Technical information which may be useful: The value of the first variable when it is no longer used is replaced by the address of the second variable
+    if (current.levelName1 != null && current.levelName1.Length > 0 && !current.levelName1.StartsWith("level")) {
+        current.levelName = current.levelName2;
+    } else {
+        current.levelName = current.levelName1;
+    }
 }
 
 
@@ -77,7 +90,7 @@ gameTime {
 
 
 reset {
-  return current.gameTime == 0 && vars.prevLevelName == "level01_cells.dae"; // If a new game is found, we reset the splits
+  return (current.gameTime == 0 && current.levelName == "level01_cells"); // If a new game is found, we reset the splits
 }
 
 
@@ -85,88 +98,73 @@ start {
     bool starting = old.gameTime == 0 && current.gameTime > 0; // If we start a new game or load a save from the main menu
     if (starting) { // We reset our variables
         vars.clarenceSkip = false;
-        vars.prevLevelName = "";
     }
     return starting;
 }
 
 
 split {
+    // Basically we look at the name of the previous level with the new one to see if we should split
+    if (settings["cells_to_vents"] && current.levelName == "level02_vents" && old.levelName == "level01_cells")
+        return true;
+    if (settings["vents_to_messhall_entrance"] && current.levelName == "level03_messhall_entrance" && old.levelName == "level02_vents")
+        return true;
+    if (settings["entrance_to_messhall"] && current.levelName == "level04_messhall" && old.levelName == "level03_messhall_entrance")
+        return true;
+    if (settings["messhall_to_sewers"] && current.levelName == "level05_sewers" && old.levelName == "level04_messhall")
+        return true;
+    if (settings["sewers_to_swanson"] && current.levelName == "level06_dr_swansons_room" && old.levelName == "level05_sewers")
+        return true;
+    // We have to be careful here with Clarence's skip
+    if (settings["swanson_to_corridor"] && vars.clarenceSkip == false && current.levelName == "level07_residental_corridors" && old.levelName == "level06_dr_swansons_room") {
+        vars.clarenceSkip = true;
+        return true;
+    }
+    if (settings["corridor_to_infirmary"] && current.levelName == "level11_infirmary" && old.levelName == "level07_residental_corridors")
+        return true;
+    if (settings["infirmary_to_corridor"] && current.levelName == "level07_residental_corridors" && old.levelName == "level11_infirmary")
+        return true;
+    if (settings["corridor_to_machine"] && current.levelName == "level10_machine_room" && old.levelName == "level07_residental_corridors")
+        return true;
+    if (settings["machine_to_corridor"] && current.levelName == "level07_residental_corridors" && old.levelName == "level10_machine_room")
+        return true;
+    if (settings["corridor_to_library"] && current.levelName == "level13_library" && old.levelName == "level07_residental_corridors")
+        return true;
+    if (settings["library_to_cave"] && current.levelName == "level14_cave" && old.levelName == "level13_library")
+        return true;
+    if (settings["cave_to_outside"] && current.levelName == "level15_outside" && old.levelName == "level14_cave")
+        return true;
+    if (settings["outside_to_corridor"] && current.levelName == "level16_infected_corridors" && old.levelName == "level15_outside")
+        return true;
+    if (settings["corridor_to_chemlab"] && current.levelName == "level19_chemical_laboratory" && old.levelName == "level16_infected_corridors")
+        return true;
+    if (settings["chemlab_to_corridor"] && current.levelName == "level16_infected_corridors" && old.levelName == "level19_chemical_laboratory")
+        return true;
+    if (settings["corridor_to_exam"] && current.levelName == "level20_examination_room" && old.levelName == "level16_infected_corridors")
+        return true;
+    if (settings["exam_to_corridor"] && current.levelName == "level16_infected_corridors" && old.levelName == "level20_examination_room")
+        return true;
+    if (settings["corridor_to_tower1"] && current.levelName == "level21_tower_1" && old.levelName == "level16_infected_corridors")
+       return true;
+    if (settings["tower1_to_tower2"] && current.levelName == "level21_tower_2" && old.levelName == "level21_tower_1")
+        return true;
+    if (settings["tower2_to_tower1"] && current.levelName == "level21_tower_1" && old.levelName == "level21_tower_2")
+        return true;
+    if (settings["tower1_to_tower3"] && current.levelName == "level21_tower_3" && old.levelName == "level21_tower_1")
+        return true;
+    if (settings["tower3_to_tower1"] && current.levelName == "level21_tower_1" && old.levelName == "level21_tower_3")
+        return true;
+    if (settings["tower1_to_tower4"] && current.levelName == "level21_tower_4" && old.levelName == "level21_tower_1")
+        return true;
+    if (settings["tower4_to_tower1"] && current.levelName == "level21_tower_1" && old.levelName == "level21_tower_4")
+        return true;
+    if (settings["tower1_to_ending"] && current.levelName == "level22_ending" && old.levelName == "level21_tower_1")
+        return true;
+
     // The end-of-run detection condition
     // The use of the wallCounter is essential because the computerEnding is also triggered during the first interaction with the computer
-    if (current.wallCounter == 4 && vars.prevLevelName == "level22_ending.dae" && current.computerEnding == 0) {
-      vars.prevLevelName = "end"; // We change the name of the level to prevent multiple splits
+    if (current.wallCounter == 4 && current.levelName == "level22_ending" && old.computerEnding == 1 && current.computerEnding == 0)
       return true;
-    }
 
-    // Debug console value when for example first level has been loaded: 'level01_cells.dae' took: 3774 ms
-    // The debug console is very often used by the game for different errors or internal information, so it is not dedicated to loading levels
-    if (!current.debug_console.StartsWith("'level")) // So we're waiting for a level loading message
-        return false;
-
-    String currentLevelName = current.debug_console.Split('\'')[1]; // We extract the name of the level of the complete message
-
-    if (currentLevelName == vars.prevLevelName) // If we don't change levels, we don't do anything
-        return false;
-
-    bool isSplit = false; // Boolean to know if we're going to have to do a split or not
-
-    // Basically we look at the name of the previous level with the new one to see if we should split
-    if (currentLevelName == "level02_vents.dae" && vars.prevLevelName == "level01_cells.dae" && settings["cells_to_vents"])
-        isSplit = true;
-    else if (currentLevelName == "level03_messhall_entrance.dae" && vars.prevLevelName == "level02_vents.dae" && settings["vents_to_messhall_entrance"])
-        isSplit = true;
-    else if (currentLevelName == "level04_messhall.dae" && vars.prevLevelName == "level03_messhall_entrance.dae" && settings["entrance_to_messhall"])
-        isSplit = true;
-    else if (currentLevelName == "level05_sewers.dae" && vars.prevLevelName == "level04_messhall.dae" && settings["messhall_to_sewers"])
-        isSplit = true;
-    else if (currentLevelName == "level06_dr_swansons_room.dae" && vars.prevLevelName == "level05_sewers.dae" && settings["sewers_to_swanson"])
-        isSplit = true;
-    // We have to be careful here with Clarence's skip
-    else if (vars.clarenceSkip == false && currentLevelName == "level07_residental_corridors.dae" && vars.prevLevelName == "level06_dr_swansons_room.dae" && settings["swanson_to_corridor"]) {
-        vars.clarenceSkip = true;
-        isSplit = true;
-    } else if (currentLevelName == "level11_infirmary.dae" && vars.prevLevelName == "level07_residental_corridors.dae" && settings["corridor_to_infirmary"])
-        isSplit = true;
-    else if (currentLevelName == "level07_residental_corridors.dae" && vars.prevLevelName == "level11_infirmary.dae" && settings["infirmary_to_corridor"])
-        isSplit = true;
-    else if (currentLevelName == "level10_machine_room.dae" && vars.prevLevelName == "level07_residental_corridors.dae" && settings["corridor_to_machine"])
-        isSplit = true;
-    else if (currentLevelName == "level07_residental_corridors.dae" && vars.prevLevelName == "level10_machine_room.dae" && settings["machine_to_corridor"])
-        isSplit = true;
-    else if (currentLevelName == "level13_library.dae" && vars.prevLevelName == "level07_residental_corridors.dae" && settings["corridor_to_library"])
-        isSplit = true;
-    else if (currentLevelName == "level14_cave.dae" && vars.prevLevelName == "level13_library.dae" && settings["library_to_cave"])
-        isSplit = true;
-    else if (currentLevelName == "level15_outside.dae" && vars.prevLevelName == "level14_cave.dae" && settings["cave_to_outside"])
-        isSplit = true;
-    else if (currentLevelName == "level16_infected_corridors.dae" && vars.prevLevelName == "level15_outside.dae" && settings["outside_to_corridor"])
-        isSplit = true;
-    else if (currentLevelName == "level19_chemical_laboratory.dae" && vars.prevLevelName == "level16_infected_corridors.dae" && settings["corridor_to_chemlab"])
-        isSplit = true;
-    else if (currentLevelName == "level16_infected_corridors.dae" && vars.prevLevelName == "level19_chemical_laboratory.dae" && settings["chemlab_to_corridor"])
-        isSplit = true;
-    else if (currentLevelName == "level20_examination_room.dae" && vars.prevLevelName == "level16_infected_corridors.dae" && settings["corridor_to_exam"])
-        isSplit = true;
-    else if (currentLevelName == "level16_infected_corridors.dae" && vars.prevLevelName == "level20_examination_room.dae" && settings["exam_to_corridor"])
-        isSplit = true;
-    else if (currentLevelName == "level21_tower_1.dae" && vars.prevLevelName == "level16_infected_corridors.dae" && settings["corridor_to_tower1"])
-       isSplit = true;
-    else if (currentLevelName == "level21_tower_2.dae" && vars.prevLevelName == "level21_tower_1.dae" && settings["tower1_to_tower2"])
-        isSplit = true;
-    else if (currentLevelName == "level21_tower_1.dae" && vars.prevLevelName == "level21_tower_2.dae" && settings["tower2_to_tower1"])
-        isSplit = true;
-    else if (currentLevelName == "level21_tower_3.dae" && vars.prevLevelName == "level21_tower_1.dae" && settings["tower1_to_tower3"])
-        isSplit = true;
-    else if (currentLevelName == "level21_tower_1.dae" && vars.prevLevelName == "level21_tower_3.dae" && settings["tower3_to_tower1"])
-        isSplit = true;
-    else if (currentLevelName == "level21_tower_4.dae" && vars.prevLevelName == "level21_tower_1.dae" && settings["tower1_to_tower4"])
-        isSplit = true;
-    else if (currentLevelName == "level21_tower_1.dae" && vars.prevLevelName == "level21_tower_4.dae" && settings["tower4_to_tower1"])
-        isSplit = true;
-    else if (currentLevelName == "level22_ending.dae" && vars.prevLevelName == "level21_tower_1.dae" && settings["tower1_to_ending"])
-        isSplit = true;
-
-    vars.prevLevelName = currentLevelName; // The previous level is now the current level
-    return isSplit;
+    return false;
 }
