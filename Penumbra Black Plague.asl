@@ -10,7 +10,7 @@ state("penumbra") {
     // Our two variables needed to retrieve the names of the loaded levels.
     // Note that the first variable is no longer used by the game when a level whose name is higher than 16 characters is loaded,
     // it is then definitively replaced until the game is restarted by the second variable.
-    string16 levelName1: 0x2DCAF0, 0x15C, 0x70, 0x170, 0x24, 0xF4;
+    string16 levelName1: 0x2DCAF0, 0x174, 0x24, 0xF4;
     string50 levelName2: 0x2DCAF0, 0x174, 0x24, 0xF4, 0x0;
 
     int wallCounter: 0x2DCAF0, 0x15C, 0x74, 0x70, 0x0, 0x48; // The wallCounter used in the last level to unlock the computer
