@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------
 //  About: Load Remover & Auto Splitter
 //  Author: MagicALCN, Kappawaii, Astropilot, Tarados, DrTChops, Kotti
-//  Version: 1.2
-//  Last Release Date: 12 January 2021
+//  Version: 1.2.1
+//  Last Release Date: 03 Mars 2021
 //-----------------------------------------------------------------
 
 
@@ -356,7 +356,7 @@ split {
             return true;
         if (settings["corridor_to_research_100"] && current.levelName == "level18_reasearch_room" && old.levelName == "level16_infected_corridors")
             return true;
-        if (settings["research_to_corridor_100"] && current.levelName == "level16_infected_corridors" && old.levelName == "level16_reasearch_room")
+        if (settings["research_to_corridor_100"] && current.levelName == "level16_infected_corridors" && old.levelName == "level18_reasearch_room")
             return true;
         if (settings["corridor_to_chemlab_100"] && current.levelName == "level19_chemical_laboratory" && old.levelName == "level16_infected_corridors")
             return true;
