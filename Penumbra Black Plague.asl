@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------
 //  About: Load Remover & Auto Splitter
 //  Author: MagicALCN, Kappawaii, Astropilot, Tarados, Quinta, DrTChops, Kotti
-//  Version: 1.3.0
-//  Last Release Date: 14 April 2021
+//  Version: 1.3.5
+//  Last Release Date: 16 April 2021
 //-----------------------------------------------------------------
 
 
@@ -30,27 +30,27 @@ startup {
     vars.loadedTime = 0; // Variable to save the ingame time when you die or reload the level
     vars.tempGameTime = 0; // Variable to store the time when we die
     vars.deathAnimationTime = 1.37; //This is the time between the death of the player and when the death message appear.
-    vars.clarenceSkip = false; // The trick to skip the effects of Clarence in the Residental Corridors by going back into Dr. Swanson's office
-    vars.chall3ToTower = false; // Saves that chall 3 to tower split has been done
+    // Array that saves the splits that have been done
+    vars.splitDoneAny = new bool[] {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
     vars.category = timer.Run.CategoryName.ToLower();
 
-    if(timer.CurrentTimingMethod == TimingMethod.RealTime){		
-		var timingMessage = MessageBox.Show(
+    if(timer.CurrentTimingMethod == TimingMethod.RealTime){     
+        var timingMessage = MessageBox.Show(
             "EN\n"+
-			"This game uses Game Time (time WITHOUT loads) as the main timing method.\n"+
-			"LiveSplit is currently set to show Real Time (time INCLUDING loads).\n"+
-			"Would you like the timing method to be set to Game Time for you?\n"+
+            "This game uses Game Time (time WITHOUT loads) as the main timing method.\n"+
+            "LiveSplit is currently set to show Real Time (time INCLUDING loads).\n"+
+            "Would you like the timing method to be set to Game Time for you?\n"+
             "\n"+
             "FR\n"+
             "Ce jeu utilise le Game Time (temps SANS les chargements) pour comptabiliser votre temps sur SRC.\n"+
-			"LiveSplit utilise actuellement le Real Time (temps AVEC les chargements).\n"+
-			"Voulez-vous mettre LiveSplit en mode Game Time ?",
-			"Penumbra: Black Plague Autosplitter",
-			MessageBoxButtons.YesNo,MessageBoxIcon.Question
-		);
-		if (timingMessage == DialogResult.Yes) 
+            "LiveSplit utilise actuellement le Real Time (temps AVEC les chargements).\n"+
+            "Voulez-vous mettre LiveSplit en mode Game Time ?",
+            "Penumbra: Black Plague Autosplitter",
+            MessageBoxButtons.YesNo,MessageBoxIcon.Question
+        );
+        if (timingMessage == DialogResult.Yes) 
             timer.CurrentTimingMethod = TimingMethod.GameTime;
-	}
+    }
 
     settings.Add("race_mode", false, "Race Mode");
     settings.SetToolTip("race_mode", "This setting needs to be checked before a race");
@@ -206,8 +206,8 @@ reset {
 start {
     bool starting = old.gameTime == 0 && current.gameTime > 0 && (current.levelName == "level01_cells" || current.levelName == "level00_tutorial"); // If we start a new game
     if (starting) { // We reset our variables
-        vars.clarenceSkip = false;
         vars.tempGameTime = 0;
+        vars.splitDoneAny = new bool[] {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
     }
     return starting;
 }
@@ -217,63 +217,108 @@ split {
 
     if (vars.category.Contains("any") || vars.category.Contains("players") || vars.category.Contains("2p") || vars.category.Contains("qsa") || vars.category.Contains("quick")) {
         // Basically we look at the name of the previous level with the new one to see if we should split
-        if (settings["cells_to_vents_any"] && current.levelName == "level02_vents" && old.levelName == "level01_cells")
-            return true;
-        if (settings["vents_to_messhall_entrance_any"] && current.levelName == "level03_messhall_entrance" && old.levelName == "level02_vents")
-            return true;
-        if (settings["entrance_to_messhall_any"] && current.levelName == "level04_messhall" && old.levelName == "level03_messhall_entrance")
-            return true;
-        if (settings["messhall_to_sewers_any"] && current.levelName == "level05_sewers" && old.levelName == "level04_messhall")
-            return true;
-        if (settings["sewers_to_swanson_any"] && current.levelName == "level06_dr_swansons_room" && old.levelName == "level05_sewers")
-            return true;
-        // We have to be careful here with Clarence's skip
-        if (settings["swanson_to_corridor_any"] && vars.clarenceSkip == false && current.levelName == "level07_residental_corridors" && old.levelName == "level06_dr_swansons_room") {
-            vars.clarenceSkip = true;
+        if (settings["cells_to_vents_any"] && !vars.splitDoneAny[0] && current.levelName == "level02_vents" && old.levelName == "level01_cells") {
+            vars.splitDoneAny[0] = true;
             return true;
         }
-        if (settings["corridor_to_infirmary_any"] && current.levelName == "level11_infirmary" && old.levelName == "level07_residental_corridors")
-            return true;
-        if (settings["infirmary_to_corridor_any"] && current.levelName == "level07_residental_corridors" && old.levelName == "level11_infirmary")
-            return true;
-        if (settings["corridor_to_machine_any"] && current.levelName == "level10_machine_room" && old.levelName == "level07_residental_corridors")
-            return true;
-        if (settings["machine_to_corridor_any"] && current.levelName == "level07_residental_corridors" && old.levelName == "level10_machine_room")
-            return true;
-        if (settings["corridor_to_library_any"] && current.levelName == "level13_library" && old.levelName == "level07_residental_corridors")
-            return true;
-        if (settings["library_to_cave_any"] && current.levelName == "level14_cave" && old.levelName == "level13_library")
-            return true;
-        if (settings["cave_to_outside_any"] && current.levelName == "level15_outside" && old.levelName == "level14_cave")
-            return true;
-        if (settings["outside_to_corridor_any"] && current.levelName == "level16_infected_corridors" && old.levelName == "level15_outside")
-            return true;
-        if (settings["corridor_to_chemlab_any"] && current.levelName == "level19_chemical_laboratory" && old.levelName == "level16_infected_corridors")
-            return true;
-        if (settings["chemlab_to_corridor_any"] && current.levelName == "level16_infected_corridors" && old.levelName == "level19_chemical_laboratory")
-            return true;
-        if (settings["corridor_to_exam_any"] && current.levelName == "level20_examination_room" && old.levelName == "level16_infected_corridors")
-            return true;
-        if (settings["exam_to_corridor_any"] && current.levelName == "level16_infected_corridors" && old.levelName == "level20_examination_room")
-            return true;
-        if (settings["corridor_to_tower1_any"] && current.levelName == "level21_tower_1" && old.levelName == "level16_infected_corridors")
-            return true;
-        if (settings["tower1_to_tower2_any"] && current.levelName == "level21_tower_2" && old.levelName == "level21_tower_1")
-            return true;
-        if (settings["tower2_to_tower1_any"] && current.levelName == "level21_tower_1" && old.levelName == "level21_tower_2")
-            return true;
-        if (settings["tower1_to_tower3_any"] && current.levelName == "level21_tower_3" && old.levelName == "level21_tower_1")
-            return true;
-        if (settings["tower3_to_tower1_any"] && current.levelName == "level21_tower_1" && old.levelName == "level21_tower_3")
-            return true;
-        // We have to be careful here because in case of a reload in Ending, the player is sent back to tower 4
-        if (settings["tower1_to_tower4_any"] && !vars.chall3ToTower && current.levelName == "level21_tower_4" && old.levelName == "level21_tower_1") {
-            vars.chall3ToTower = true;
+        if (settings["vents_to_messhall_entrance_any"] && !vars.splitDoneAny[1] && current.levelName == "level03_messhall_entrance" && old.levelName == "level02_vents") {
+            vars.splitDoneAny[1] = true;
             return true;
         }
-        if (settings["tower4_to_tower1_any"] && current.levelName == "level21_tower_1" && old.levelName == "level21_tower_4")
+        if (settings["entrance_to_messhall_any"] && !vars.splitDoneAny[2] && current.levelName == "level04_messhall" && old.levelName == "level03_messhall_entrance") {
+            vars.splitDoneAny[2] = true;
             return true;
-        if (settings["tower1_to_ending_any"] && !vars.chall3ToTower && current.levelName == "level22_ending" && old.levelName == "level21_tower_1") {
+        }
+        if (settings["messhall_to_sewers_any"] && !vars.splitDoneAny[3] && current.levelName == "level05_sewers" && old.levelName == "level04_messhall") {
+            vars.splitDoneAny[3] = true;
+            return true;
+        }
+        if (settings["sewers_to_swanson_any"] && !vars.splitDoneAny[4] && current.levelName == "level06_dr_swansons_room" && old.levelName == "level05_sewers") {
+            vars.splitDoneAny[4] = true;
+            return true;
+        }
+        if (settings["swanson_to_corridor_any"] && !vars.splitDoneAny[5] && current.levelName == "level07_residental_corridors" && old.levelName == "level06_dr_swansons_room") {
+            vars.splitDoneAny[5] = true;
+            return true;
+        }
+        if (settings["corridor_to_infirmary_any"] && !vars.splitDoneAny[6] && current.levelName == "level11_infirmary" && old.levelName == "level07_residental_corridors") {
+            vars.splitDoneAny[6] = true;
+            return true;
+        }
+        if (settings["infirmary_to_corridor_any"] && !vars.splitDoneAny[7] && current.levelName == "level07_residental_corridors" && old.levelName == "level11_infirmary") {
+            vars.splitDoneAny[7] = true;
+            return true;
+        }
+        if (settings["corridor_to_machine_any"] && !vars.splitDoneAny[8] && current.levelName == "level10_machine_room" && old.levelName == "level07_residental_corridors") {
+            vars.splitDoneAny[8] = true;
+            return true;
+        }
+        if (settings["machine_to_corridor_any"] && !vars.splitDoneAny[9] && current.levelName == "level07_residental_corridors" && old.levelName == "level10_machine_room") {
+            vars.splitDoneAny[9] = true;
+            return true;
+        }
+        if (settings["corridor_to_library_any"] && !vars.splitDoneAny[10] && current.levelName == "level13_library" && old.levelName == "level07_residental_corridors") {
+            vars.splitDoneAny[10] = true;
+            return true;
+        }
+        if (settings["library_to_cave_any"] && !vars.splitDoneAny[11] && current.levelName == "level14_cave" && old.levelName == "level13_library") {
+            vars.splitDoneAny[11] = true;
+            return true;
+        }
+        if (settings["cave_to_outside_any"] && !vars.splitDoneAny[12] && current.levelName == "level15_outside" && old.levelName == "level14_cave") {
+            vars.splitDoneAny[12] = true;
+            return true;
+        }
+        if (settings["outside_to_corridor_any"] && !vars.splitDoneAny[13] && current.levelName == "level16_infected_corridors" && old.levelName == "level15_outside") {
+            vars.splitDoneAny[13] = true;
+            return true;
+        }
+        if (settings["corridor_to_chemlab_any"] && !vars.splitDoneAny[14] && current.levelName == "level19_chemical_laboratory" && old.levelName == "level16_infected_corridors") {
+            vars.splitDoneAny[14] = true;
+            return true;
+        }
+        if (settings["chemlab_to_corridor_any"] && !vars.splitDoneAny[15] && current.levelName == "level16_infected_corridors" && old.levelName == "level19_chemical_laboratory") {
+            vars.splitDoneAny[15] = true;
+            return true;
+        }
+        if (settings["corridor_to_exam_any"] && !vars.splitDoneAny[16] && current.levelName == "level20_examination_room" && old.levelName == "level16_infected_corridors") {
+            vars.splitDoneAny[16] = true;
+            return true;
+        }
+        if (settings["exam_to_corridor_any"] && !vars.splitDoneAny[17] && current.levelName == "level16_infected_corridors" && old.levelName == "level20_examination_room") {
+            vars.splitDoneAny[17] = true;
+            return true;
+        }
+        if (settings["corridor_to_tower1_any"] && !vars.splitDoneAny[18] && current.levelName == "level21_tower_1" && old.levelName == "level16_infected_corridors") {
+            vars.splitDoneAny[18] = true;
+            return true;
+        }
+        if (settings["tower1_to_tower2_any"] && !vars.splitDoneAny[19] && current.levelName == "level21_tower_2" && old.levelName == "level21_tower_1") {
+            vars.splitDoneAny[19] = true;
+            return true;
+        }
+        if (settings["tower2_to_tower1_any"] && !vars.splitDoneAny[20] && current.levelName == "level21_tower_1" && old.levelName == "level21_tower_2") {
+            vars.splitDoneAny[20] = true;
+            return true;
+        }
+        if (settings["tower1_to_tower3_any"] && !vars.splitDoneAny[21] && current.levelName == "level21_tower_3" && old.levelName == "level21_tower_1") {
+            vars.splitDoneAny[21] = true;
+            return true;
+        }
+        if (settings["tower3_to_tower1_any"] && !vars.splitDoneAny[22] && current.levelName == "level21_tower_1" && old.levelName == "level21_tower_3") {
+            vars.splitDoneAny[22] = true;
+            return true;
+        }
+        if (settings["tower1_to_tower4_any"] && !vars.splitDoneAny[23] && current.levelName == "level21_tower_4" && old.levelName == "level21_tower_1") {
+            vars.splitDoneAny[23] = true;
+            return true;
+        }
+        if (settings["tower4_to_tower1_any"] && !vars.splitDoneAny[24] && current.levelName == "level21_tower_1" && old.levelName == "level21_tower_4") {
+            vars.splitDoneAny[24] = true;
+            return true;
+        }
+        if (settings["tower1_to_ending_any"] && !vars.splitDoneAny[25] && current.levelName == "level22_ending" && old.levelName == "level21_tower_1") {
+            vars.splitDoneAny[25] = true;
             return true;
         }
     }
