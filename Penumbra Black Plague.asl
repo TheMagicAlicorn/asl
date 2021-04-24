@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------
 //  About: Load Remover & Auto Splitter
 //  Author: MagicALCN, Kappawaii, Astropilot, Tarados, Quinta, DrTChops, Kotti
-//  Version: 1.3.5
-//  Last Release Date: 16 April 2021
+//  Version: 1.3.7
+//  Last Release Date: 24 April 2021
 //-----------------------------------------------------------------
 
 
@@ -22,6 +22,9 @@ state("penumbra") {
 
     //Health is used to determined if the player is dead or not
     float health: 0x2DCAF0, 0x1BC, 0xAC, 0x15C, 0x310;
+
+    //We want to run on the 1.1 version of the game
+    string4 game_version: 0x27A254;
 }
 
 
@@ -157,6 +160,21 @@ startup {
         settings.Add("tower1_to_tower4_100", false, "Tower to Challenge 3", "100%");
         settings.Add("tower4_to_tower1_100", true, "Challenge 3 to Tower", "100%");
         settings.Add("tower1_to_ending_100", false, "Tower to Ending", "100%");
+}
+
+init { //We prevent people that are using the wrong version of the game.
+    if(current.game_version != "2595"){
+        var steamLink = "https://store.steampowered.com/app/22120/Penumbra_Black_Plague_Gold_Edition/";
+        var wrongVersion = MessageBox.Show(
+				"It appears that you're running on the wrong version of the game.\n\n"+
+				"Please buy the game on steam.\n\n"+
+				"The load remover will not work outside of the steam version\n"+
+                "Press OK to copy the steam link in your clipboard",
+				"Penumbra Black Plague Autosplitter",
+				MessageBoxButtons.OKCancel,MessageBoxIcon.Warning
+			);
+			if (wrongVersion == DialogResult.OK) Clipboard.SetText(steamLink);
+    }
 }
 
 
