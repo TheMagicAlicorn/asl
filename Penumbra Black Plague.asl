@@ -163,7 +163,7 @@ startup {
 }
 
 init { //We prevent people that are using the wrong version of the game.
-    if(current.game_version != "2595"){
+    if(current.game_version == "co"){
         var steamLink = "https://store.steampowered.com/app/22120/Penumbra_Black_Plague_Gold_Edition/";
         var wrongVersion = MessageBox.Show(
 				"It appears that you're running on the wrong version of the game.\n\n"+
