@@ -36,6 +36,8 @@ startup {
     // Array that saves the splits that have been done
     vars.splitDoneAny = new bool[] {false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false};
     vars.category = timer.Run.CategoryName.ToLower();
+    vars.clarenceSkip = false;
+    vars.chall3ToTower = false;
 
     if(timer.CurrentTimingMethod == TimingMethod.RealTime){     
         var timingMessage = MessageBox.Show(
