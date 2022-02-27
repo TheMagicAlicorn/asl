@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------
 //  About: Load Remover & Auto Splitter
 //  Author: MagicALCN, Kappawaii, Astropilot, Tarados, Quinta, DrTChops, Kotti
-//  Version: 1.3.7
-//  Last Release Date: 24 April 2021
+//  Version: 1.3.8
+//  Last Release Date: 27 February 2022
 //-----------------------------------------------------------------
 
 
